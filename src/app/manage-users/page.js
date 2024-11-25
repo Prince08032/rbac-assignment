@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -9,6 +9,15 @@ import RolesTab from '@/components/manage/RolesTab';
 import PermissionsTab from '@/components/manage/PermissionsTab';
 import { permissionUtils } from '@/lib/permissions';
 import ErrorState from '@/components/ErrorState';
+
+// Loading component
+function LoadingState() {
+  return (
+    <div className="min-h-screen flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
+    </div>
+  );
+}
 
 // Access Denied Component
 function AccessDenied() {
@@ -24,7 +33,8 @@ function AccessDenied() {
   );
 }
 
-export default function ManageUsers() {
+// Main content component
+function ManageUsersContent() {
   const [activeTab, setActiveTab] = useState('users');
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -184,9 +194,7 @@ export default function ManageUsers() {
   if (loading && !availableTabs.length) {
     return (
       <ProtectedRoute>
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-500"></div>
-        </div>
+        <LoadingState />
       </ProtectedRoute>
     );
   }
@@ -253,5 +261,14 @@ export default function ManageUsers() {
         </div>
       </div>
     </ProtectedRoute>
+  );
+}
+
+// Main page component
+export default function ManageUsers() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ManageUsersContent />
+    </Suspense>
   );
 } 

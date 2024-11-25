@@ -227,14 +227,6 @@ export default function Auth() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
       <div className="max-w-md w-full space-y-8 p-8 bg-white dark:bg-gray-800 rounded-xl shadow-lg">
         <div className="text-center">
-          <Image
-            className="mx-auto h-12 w-auto dark:invert"
-            src="/next.svg"
-            alt="Logo"
-            width={180}
-            height={38}
-            priority
-          />
           <h2 className="mt-6 text-3xl font-bold text-gray-900 dark:text-white">
             {isLogin ? 'Sign in to your account' : 'Create new account'}
           </h2>
