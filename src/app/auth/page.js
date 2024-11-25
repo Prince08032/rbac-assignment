@@ -89,8 +89,10 @@ export default function Auth() {
           message: 'Login successful! Redirecting...'
         });
 
-        // Redirect to dashboard
-        router.push('/dashboard');
+        // Refresh the page and redirect
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 500);
 
       } else {
         // Signup Process
