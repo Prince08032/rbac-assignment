@@ -25,160 +25,143 @@ export default function Auth() {
     try {
       if (isLogin) {
         // Login Process
-        try {
-          const { data: userData, error: userError } = await supabase
-            .from('users')
-            .select('*')
-            .eq('email', formData.email)
-            .single();
+        const { data: userData, error: userError } = await supabase
+          .from('users')
+          .select('*')
+          .eq('email', formData.email.toLowerCase())
+          .single();
 
-          if (userError) {
-            setError({
-              type: 'error',
-              message: 'Invalid email or password'
-            });
-            return;
-          }
-
-          if (!userData) {
-            setError({
-              type: 'error',
-              message: 'Invalid email or password'
-            });
-            return;
-          }
-
-          // Check user status
-          if (userData.status !== 'active') {
-            setError({
-              type: 'error',
-              message: 'Your account is inactive. Please contact support.'
-            });
-            return;
-          }
-
-          // Verify password
-          const isValidPassword = await passwordUtils.comparePassword(
-            formData.password,
-            userData.password
-          );
-
-          if (!isValidPassword) {
-            setError({
-              type: 'error',
-              message: 'Invalid email or password'
-            });
-            return;
-          }
-
-          // Generate JWT token with user data
-          const token = jwtUtils.generateToken({
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
-            role: userData.role,
-            status: userData.status
-          });
-
-          // Set token in cookie
-          jwtUtils.setTokenCookie(token);
-
-          // Store user data in local storage
-          localStorage.setItem('userData', JSON.stringify({
-            id: userData.id,
-            email: userData.email,
-            name: userData.name,
-            role: userData.role,
-            status: userData.status
-          }));
-
-          // Redirect to dashboard
-          router.push('/dashboard');
-        } catch (loginError) {
-          console.log('Login error:', loginError);
+        if (userError || !userData) {
           setError({
             type: 'error',
-            message: 'An error occurred during login. Please try again.'
+            message: 'Invalid email or password'
           });
+          return;
         }
+
+        // Check user status
+        if (userData.status !== 'active') {
+          setError({
+            type: 'error',
+            message: 'Your account is inactive. Please contact support.'
+          });
+          return;
+        }
+
+        // Verify password
+        const isValidPassword = await passwordUtils.comparePassword(
+          formData.password,
+          userData.password
+        );
+
+        if (!isValidPassword) {
+          setError({
+            type: 'error',
+            message: 'Invalid email or password'
+          });
+          return;
+        }
+
+        // Generate JWT token with user data
+        const token = jwtUtils.generateToken({
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          role: userData.role,
+          status: userData.status
+        });
+
+        // Set token in cookie
+        jwtUtils.setTokenCookie(token);
+
+        // Store user data in local storage
+        localStorage.setItem('userData', JSON.stringify({
+          id: userData.id,
+          email: userData.email,
+          name: userData.name,
+          role: userData.role,
+          status: userData.status
+        }));
+
+        // Show success message
+        setError({
+          type: 'success',
+          message: 'Login successful! Redirecting...'
+        });
+
+        // Redirect to dashboard
+        router.push('/dashboard');
+
       } else {
         // Signup Process
-        try {
-          // Check if email exists
-          const { data: existingUser } = await supabase
-            .from('users')
-            .select('email')
-            .eq('email', formData.email)
-            .single();
+        // Check if email exists
+        const { data: existingUser } = await supabase
+          .from('users')
+          .select('email')
+          .eq('email', formData.email.toLowerCase())
+          .single();
 
-          if (existingUser) {
-            setError({
-              type: 'error',
-              message: 'Email already registered'
-            });
-            return;
-          }
-
-          // Hash password
-          const hashedPassword = await passwordUtils.hashPassword(formData.password);
-
-          // Create new user
-          const { data: newUser, error: createError } = await supabase
-            .from('users')
-            .insert([
-              {
-                email: formData.email,
-                name: formData.name,
-                password: hashedPassword,
-                role: ['user'],
-                status: 'active'
-              }
-            ])
-            .select()
-            .single();
-
-          if (createError) {
-            console.log('User creation error:', createError);
-            setError({
-              type: 'error',
-              message: 'Failed to create account. Please try again.'
-            });
-            return;
-          }
-
-          // Generate JWT token
-          const token = jwtUtils.generateToken({
-            id: newUser.id,
-            email: newUser.email,
-            name: newUser.name,
-            role: newUser.role,
-            status: newUser.status
-          });
-
-          // Set token in cookie
-          jwtUtils.setTokenCookie(token);
-
-          // Store user data in local storage
-          localStorage.setItem('userData', JSON.stringify({
-            id: newUser.id,
-            email: newUser.email,
-            name: newUser.name,
-            role: newUser.role,
-            status: newUser.status
-          }));
-
-          // Redirect to dashboard
-          router.push('/dashboard');
-        } catch (signupError) {
-          console.log('Signup error:', signupError);
+        if (existingUser) {
           setError({
             type: 'error',
-            message: 'An error occurred during signup. Please try again.'
+            message: 'Email already registered'
           });
+          return;
         }
+
+        // Hash password
+        const hashedPassword = await passwordUtils.hashPassword(formData.password);
+
+        // Create new user
+        const { data: newUser, error: createError } = await supabase
+          .from('users')
+          .insert([
+            {
+              email: formData.email.toLowerCase(),
+              name: formData.name,
+              password: hashedPassword,
+              role: ['user'],
+              status: 'active'
+            }
+          ])
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('User creation error:', createError);
+          setError({
+            type: 'error',
+            message: 'Failed to create account. Please try again.'
+          });
+          return;
+        }
+
+        // Generate JWT token
+        const token = jwtUtils.generateToken({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          status: newUser.status
+        });
+
+        // Set token in cookie
+        jwtUtils.setTokenCookie(token);
+
+        // Store user data in local storage
+        localStorage.setItem('userData', JSON.stringify({
+          id: newUser.id,
+          email: newUser.email,
+          name: newUser.name,
+          role: newUser.role,
+          status: newUser.status
+        }));
+
+        // Redirect to dashboard
+        router.push('/dashboard');
       }
     } catch (error) {
-      console.log('General error:', error);
+      console.error('Auth error:', error);
       setError({
         type: 'error',
         message: 'An unexpected error occurred. Please try again.'
