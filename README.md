@@ -2,6 +2,16 @@
 
 A modern, responsive dashboard application built with Next.js, featuring comprehensive user management, role-based access control, and a clean, intuitive interface.
 
+## Test User (role admin)
+**Email**
+```bash
+admin@admin
+```
+**Password**
+```bash
+@@Admin0
+```
+
 ## Features
 
 - 🔐 **Authentication & Authorization**
